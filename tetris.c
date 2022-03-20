@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <termios.h>
+
 #define ELEMENT_SIZE 4
 char possible_elements[5][ELEMENT_SIZE][ELEMENT_SIZE] = {
     {
@@ -50,6 +53,19 @@ struct Game {
     int score;
     struct Element* stash;
 };
+
+int getch(){
+    int ch;
+    struct termios oldt, newt;
+    tcgetattr( STDIN_FILENO, &oldt );
+    newt = oldt;
+    newt.c_lflag &= ~( ICANON | ECHO );
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt );
+    ch = getchar();
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
+    return ch;
+}
+
 void clear_memory(char* memory, int size){
     for(int i = 0; i < size; i++) *(memory + i) = 0;
 }
@@ -196,7 +212,7 @@ void print_element(struct Element* element){
 int main(){
     struct Game* game = new_game();
     while(1){
-        char command =  getchar();
+        char command = getch();
     
         switch(command){
             case 'w':
@@ -211,11 +227,8 @@ int main(){
             case 's':
                 move_down(game);
                 break;
-        } 
-        
+        }
+         
+        render_game(game);
     }
-    render_game(game);
-    move_down(game);
-    render_game(game);        
-
 }
