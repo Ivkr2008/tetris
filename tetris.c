@@ -102,7 +102,7 @@ struct Game* new_game(){
 
 
 void drawing(char canvas[10][20]){
-    //printf("\e[1;1H\e[2J");
+    printf("\e[1;1H\e[2J");
     for(int j = 19; j >= 0; j--){
         for(int i = 0; i < 10; i++)
             if(canvas[i][j]) printf("#");
