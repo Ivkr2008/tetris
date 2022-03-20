@@ -107,7 +107,8 @@ void drawing(char canvas[10][20]){
 
 void render_game(struct Game* game_ptr){
     char canvas[10][20];
-    clear_memory(canvas, 200);
+    for(int i = 0; i < 200; i++)
+        *((char*)canvas + i) = *(*game_ptr->field + i);
     int x = game_ptr->current_element->x;  
     int y = game_ptr->current_element->y;
     for(int i = 0; i < ELEMENT_SIZE; i++) {
