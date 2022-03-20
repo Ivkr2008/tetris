@@ -1,25 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-//#include <graphics>//
-char possible_elements[2][4][4] = {
+#define ELEMENT_SIZE 4
+char possible_elements[5][ELEMENT_SIZE][ELEMENT_SIZE] = {
     {
-        {0,0,0,0},
-        {0,1,1,0},
-        {0,1,1,0},
-        {0,0,0,0}
+        {0, 0, 0, 0},
+        {0, 1, 1, 0},
+        {0, 1, 1 ,0},
+        {0, 0, 0, 0}
     },
     {
-        {0,0,0,0},
-        {1,1,1,1},
-        {0,0,0,0},
-        {0,0,0,0}
+        {0, 0, 0, 0},
+        {1, 1, 1, 1},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
+    },
+    {
+        {0, 0, 0, 0},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
+        {0, 0, 0, 0}
+    },
+    {
+        {0, 0, 0, 0},
+        {1, 1, 0, 0},
+        {0, 1, 1, 0},
+        {0, 0, 0, 0}
+    },
+    {
+        {0, 0, 0, 0},
+        {0, 0, 0 ,0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 0}
     }
+     
 };
 
 struct Element {
     int x,y;
-    char body[4][4];
+    char body[ELEMENT_SIZE][ELEMENT_SIZE];
 };
 
 
@@ -43,14 +62,14 @@ void* get_new_memory(int size){
 
 
 struct Element* new_element(){
-    char element_number = rand()%2;
+    char element_number = rand()%5;
     struct Element* element_ptr = malloc(sizeof (struct Element));
     clear_memory(element_ptr, sizeof (struct Element));
     (*element_ptr).x = 5;
-    (*element_ptr).y = 20;
-    for(int i; i < 4; i++)
-        for(int j; j < 4; j++)
-          element_ptr->body[i][j]  = possible_elements[element_number][i][j];
+    (*element_ptr).y = 10;
+    for(int i = 0; i < ELEMENT_SIZE; i++)
+        for(int j = 0; j < ELEMENT_SIZE; j++)
+          element_ptr->body[i][j]  = possible_elements[2][i][j];
     
     return element_ptr;
 }
@@ -67,7 +86,7 @@ struct Game* new_game(){
 
 
 void drawing(char canvas[10][20]){
-    printf("\e[1;1H\e[2J");
+    //printf("\e[1;1H\e[2J");
     for(int j = 19; j >= 0; j--){
         for(int i = 0; i < 10; i++)
             if(canvas[i][j]) printf("#");
@@ -82,18 +101,121 @@ void render_game(struct Game* game_ptr){
         *((char*)canvas + i) = *(*game_ptr->field + i);  
     int x = game_ptr->current_element->x;  
     int y = game_ptr->current_element->y;
-    for(int i = 0; i < 4; i++)
-        for(int j = 0; j < 4; j++)
+    for(int i = 0; i < ELEMENT_SIZE; i++)
+        for(int j = 0; j < ELEMENT_SIZE; j++)
             canvas[x+i][y+j] = game_ptr->current_element->body[i][j];
     drawing(canvas);
 }
 
 
+void turn_180_y(struct Element* element){
+    char buffer;
+    for(int i = 0; i < ELEMENT_SIZE; i++)
+        for(int j = 0; j < ELEMENT_SIZE/2; j++){
+            buffer = element->body[i][j];
+            element->body[i][j] = element->body[i][ELEMENT_SIZE-j-1];
+            element->body[i][ELEMENT_SIZE-j-1] = buffer;
 
+        }
+
+}
+
+
+void turn_180_diagonal(struct Element* element){
+    char buffer;
+    for(int i = 0; i < ELEMENT_SIZE; i++)
+        for(int j = 0; j < ELEMENT_SIZE; j++){
+            if(i>j)continue;
+            buffer = element->body[i][j];
+            element->body[i][j] = element->body[j][i];
+            element->body[j][i] = buffer;
+        }
+          
+
+}
+
+void turn_90_right_unsafe(struct Element* element){
+    turn_180_y(element);
+    turn_180_diagonal(element); 
+}
+
+
+
+
+void turn_90_left_unsafe(struct Element* element){
+    turn_180_diagonal(element); 
+    turn_180_y(element);
+}
+
+void turn_90_left(struct Game* game){
+    turn_90_left_unsafe(game->current_element);
+    if (!check_collisions(game))  turn_90_right_unsafe(game->current_element);
+}
+
+void turn_90_right(struct Game* game){
+    turn_90_right_unsafe(game->current_element);
+    if (!check_collisions(game))  turn_90_left_unsafe(game->current_element);
+}
+
+int check_collisions(struct Game* game){
+    int x = game->current_element->x;
+    int y = game->current_element->y;
+    for(int i = 0; i < ELEMENT_SIZE; i++)
+        for(int j = 0; j < ELEMENT_SIZE; j++)
+            if (!game->current_element->body[i][j]) continue;
+            else if (!(game->current_element->body[i][j] && x+i >= 0 && x+i < 10 && y+j >= 0 && y+j < 20)) return 0;
+            else if (game->field[x+i][y+j]) return 0;
+    return 1;        
+}
+void move_down(struct Game* game){
+    game->current_element->y--;
+    if (!check_collisions(game)) game->current_element->y++;
+ }
+void move_right(struct Game* game){
+    game->current_element->x--;
+    if (!check_collisions(game)) game->current_element->x++;
+}
+void move_left(struct Game* game){
+    game->current_element->x++;
+    if (!check_collisions(game)) game->current_element->x--;
+}
+
+
+
+
+void print_element(struct Element* element){
+    for(int i = 0; i < ELEMENT_SIZE; i++){
+        printf("\n");
+        for(int j = 0; j < ELEMENT_SIZE; j++)
+            if (element->body[i][j]) printf("#");
+            else printf(" ");   
+    }
+            
+}    
+          
 int main(){
-    struct Game game = *new_game();
-    game.field[0][0] = 1;
-    game.current_element->x = 0;
-    game.current_element->y = 10;
-    render_game(&game);
+    struct Game* game = new_game();
+    while(1){
+        char command =  getchar();
+    
+        switch(command){
+            case 'w':
+                turn_90_left(game);
+                break;
+            case 'a':
+                move_left(game);
+                break;
+            case 'd':
+                move_right(game);
+                break;
+            case 's':
+                move_down(game);
+                break;
+        } 
+        
+    }
+    render_game(game);
+    move_down(game);
+    render_game(game);        
+
 }
