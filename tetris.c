@@ -117,9 +117,12 @@ void render_game(struct Game* game_ptr){
         *((char*)canvas + i) = *(*game_ptr->field + i);  
     int x = game_ptr->current_element->x;  
     int y = game_ptr->current_element->y;
-    for(int i = 0; i < ELEMENT_SIZE; i++)
-        for(int j = 0; j < ELEMENT_SIZE; j++)
+    for(int i = 0; i < ELEMENT_SIZE; i++) {
+        for(int j = 0; j < ELEMENT_SIZE; j++) {
+            if (x+i < 0 || x+i >= 10 || y+j < 0 || y+j >= 20) continue;
             canvas[x+i][y+j] = game_ptr->current_element->body[i][j];
+        }
+    }
     drawing(canvas);
 }
 
@@ -179,7 +182,7 @@ int check_collisions(struct Game* game){
     for(int i = 0; i < ELEMENT_SIZE; i++)
         for(int j = 0; j < ELEMENT_SIZE; j++)
             if (!game->current_element->body[i][j]) continue;
-            else if (!(game->current_element->body[i][j] && x+i >= 0 && x+i < 10 && y+j >= 0 && y+j < 20)) return 0;
+            else if (x+i < 0 || x+i >= 10 || y+j < 0 || y+j >= 20) return 0;
             else if (game->field[x+i][y+j]) return 0;
     return 1;        
 }
