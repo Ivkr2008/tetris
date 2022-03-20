@@ -5,6 +5,7 @@
 #include <termios.h>
 
 #define ELEMENT_SIZE 4
+
 char possible_elements[5][ELEMENT_SIZE][ELEMENT_SIZE] = {
     {
         {0, 0, 0, 0},
@@ -44,9 +45,6 @@ struct Element {
     char body[ELEMENT_SIZE][ELEMENT_SIZE];
 };
 
-
-
-
 struct Game {
     char field[10][20];
     struct Element* current_element;
@@ -76,19 +74,19 @@ void* get_new_memory(int size){
     return memory;
 }
 
-
 struct Element* new_element(){
     char element_number = rand()%5;
     struct Element* element_ptr = malloc(sizeof (struct Element));
     clear_memory(element_ptr, sizeof (struct Element));
     (*element_ptr).x = 5;
-    (*element_ptr).y = 10;
+    (*element_ptr).y = 16;
     for(int i = 0; i < ELEMENT_SIZE; i++)
         for(int j = 0; j < ELEMENT_SIZE; j++)
           element_ptr->body[i][j]  = possible_elements[2][i][j];
     
     return element_ptr;
 }
+
 struct Game* new_game(){
     struct Game* game_ptr = malloc(sizeof (struct Game)); 
     clear_memory(game_ptr, sizeof (struct Game));
@@ -96,10 +94,6 @@ struct Game* new_game(){
     (*game_ptr).score = 0;
     (*game_ptr).stash = NULL;
 }
-
-    
-
-
 
 void drawing(char canvas[10][20]){
     printf("\e[1;1H\e[2J");
@@ -112,9 +106,8 @@ void drawing(char canvas[10][20]){
 }
 
 void render_game(struct Game* game_ptr){
-    char canvas[10][20]; 
-    for(int i = 0; i < 200; i++)
-        *((char*)canvas + i) = *(*game_ptr->field + i);  
+    char canvas[10][20];
+    clear_memory(canvas, 200);
     int x = game_ptr->current_element->x;  
     int y = game_ptr->current_element->y;
     for(int i = 0; i < ELEMENT_SIZE; i++) {
@@ -134,11 +127,8 @@ void turn_180_y(struct Element* element){
             buffer = element->body[i][j];
             element->body[i][j] = element->body[i][ELEMENT_SIZE-j-1];
             element->body[i][ELEMENT_SIZE-j-1] = buffer;
-
         }
-
 }
-
 
 void turn_180_diagonal(struct Element* element){
     char buffer;
@@ -149,17 +139,12 @@ void turn_180_diagonal(struct Element* element){
             element->body[i][j] = element->body[j][i];
             element->body[j][i] = buffer;
         }
-          
-
 }
 
 void turn_90_right_unsafe(struct Element* element){
     turn_180_y(element);
     turn_180_diagonal(element); 
 }
-
-
-
 
 void turn_90_left_unsafe(struct Element* element){
     turn_180_diagonal(element); 
@@ -193,7 +178,6 @@ void move_down(struct Game* game){
 }
 
 void move_right(struct Game* game){    
-    
     game->current_element->x++;
     if (!check_collisions(game)) game->current_element->x--;
 }
@@ -210,7 +194,6 @@ void print_element(struct Element* element){
             if (element->body[i][j]) printf("#");
             else printf(" ");   
     }
-             
 }    
           
 int main(){
@@ -232,7 +215,7 @@ int main(){
                 move_down(game);
                 break;
         }
-         
+
         render_game(game);
     }
 }
