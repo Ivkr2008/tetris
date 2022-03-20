@@ -183,21 +183,22 @@ int check_collisions(struct Game* game){
             else if (game->field[x+i][y+j]) return 0;
     return 1;        
 }
+
 void move_down(struct Game* game){
     game->current_element->y--;
     if (!check_collisions(game)) game->current_element->y++;
- }
-void move_right(struct Game* game){
-    game->current_element->x--;
-    if (!check_collisions(game)) game->current_element->x++;
 }
-void move_left(struct Game* game){
+
+void move_right(struct Game* game){    
+    
     game->current_element->x++;
     if (!check_collisions(game)) game->current_element->x--;
 }
 
-
-
+void move_left(struct Game* game){
+    game->current_element->x--;
+    if (!check_collisions(game)) game->current_element->x++;
+}
 
 void print_element(struct Element* element){
     for(int i = 0; i < ELEMENT_SIZE; i++){
@@ -206,7 +207,7 @@ void print_element(struct Element* element){
             if (element->body[i][j]) printf("#");
             else printf(" ");   
     }
-            
+             
 }    
           
 int main(){
